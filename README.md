@@ -1,14 +1,23 @@
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Atigeo/spark-job-rest?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Features:
 
 **Supports multiple spark contexts created from the same server**
 
 The main problem this project solves is the inability to run multiple Spark contexts from the same JVM. This is a bug in Spark core that was also present in Ooyala's Spark Job Server, from which this project is inspired. The project launches a new process for each Spark context/application, with its own driver memory setting and its own driver log. Each driver JVM is created with its own Spark UI port, sent back to the api caller. Inter-process communication is achieved with akka actors, and each process is shut down when a Spark context/application is deleted.
 
+## Version compatibility
+
+SJR Version   | Spark Version
+------------- | -------------
+0.3.0         |  1.1.0 
+0.3.1         |  1.3.1 
+
 ## Building Spark-Job-Rest (SJR)
 
 The project is build with Maven3 and Java7.
 ```
-mvn clean install
+make build
 ```
 SJR can now be deployed from spark-job-rest/spark-job-rest/target/spark-job-rest.tar.gz
 
@@ -38,6 +47,44 @@ Exception in thread "main" java.lang.NoClassDefFoundError: akka/actor/Props
 ```
 This happens because the spark dependency has the provided scope. In order to run from IDE you can remove the provided scope for the spark dependency(inside pom.xml) or you can add the spark assembly jar to the running classpath.
 
+## Deploying Spark-Job-Rest
+
+You can deploy Spark-Job-Rest by:
+```
+make deploy
+```
+which currently supports only local deploy.
+
+Optionally you can specify deploy directory in `$SJR_DEPLOY_PATH` environment variable:
+```
+SJR_DEPLOY_PATH=/opt/spark-job-rest make deploy
+```
+
+In order to have a make proper installation you should set `$SPARK_HOME` to your Apache Spark distribution and `$SPARK_CONF_HOME` to directory which consists `spark-env.sh` (usually `$SPARK_HOME/conf` or `$SPARK_HOME/libexec/conf`).
+You can do it in your bash profile (`~/.bash_profile` or `~/.bashrc`) by adding the following lines:
+```
+export SPARK_HOME=<Path to Apache Spark>
+export SPARK_CONF_HOME=$SPARK_HOME/libexec/conf
+```
+After that either run in the new terminal session or source your bash profile.
+
+To reinstall application or install it at remote host run `$SJR_DEPLOY_PATH/resources/install.sh` it will set proper directory paths.
+ 
+## Starting Spark-Job-Rest
+
+To start/stop SJR use
+```
+cd $SJR_DEPLOY_PATH
+bin/start_server.sh
+bin/stop_server.sh
+```
+
+or if it deployed to default destination just
+```
+make start
+make stop
+```
+
 ## Configure Spark-job-rest
 
 In order to configure SJR the following file needs to be edited: resources/application.conf
@@ -62,6 +109,8 @@ web.services.port=8097
 ```
 
 Also, SPARK_HOME variable must be edited in the settings.sh file. It must be pointed to the local Spark deployment folder. The SJR can be run from outside the Spark cluster, but you need to at least copy the deployment folder from one of the slaves or master nodes.
+
+For the UI to work, the file spark-job-rest/src/main/resources/webapp/js/behaviour.js must be edited in order to set the URL and the host of the machine where you are running the server. The UI can be accessed at serverAddress:serverPort/ .
 
 ## Run Spark-job-rest
 
@@ -121,7 +170,7 @@ Maven Spark-Job-Rest-Client dependency:
 <dependency>
     <groupId>com.xpatterns</groupId>
     <artifactId>spark-job-rest-client</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
@@ -132,7 +181,7 @@ Add maven Spark-Job-Rest-Api dependency:
 <dependency>
     <groupId>com.xpatterns</groupId>
     <artifactId>spark-job-rest-api</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
